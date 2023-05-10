@@ -98,59 +98,6 @@ public class UpdateQuery {
 
     }
 
-    public void updateCreditsAccumulation() {
-        try {
-            String dogIDList = "SELECT dogID FROM optibank.givecr;";
-            PreparedStatement ps = conn.prepareStatement(dogIDList);
-            ResultSet resultSet = ps.executeQuery();
-            ArrayList<Integer> dogIDArr = new ArrayList<>();
-            while (resultSet.next()) {
-                dogIDArr.add(resultSet.getInt("dogID"));
-            }
-
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            dogIDArr.stream()
-                    .forEach(v -> {
-                        try {
-                            ResultSet rs;
-                            String feDBReq = "SELECT dateOfStart FROM optibank.givecr WHERE dogID = " + v + ";";
-                            PreparedStatement fePS = conn.prepareStatement(feDBReq);
-                            rs = fePS.executeQuery();
-                            rs.next();
-                            String date = rs.getString("dateOfStart");
-                            LocalDate dateOfStartDeposit = LocalDate.parse(date, formatter);
-
-                            LocalDate today = LocalDate.now();
-
-                            feDBReq = "SELECT summa FROM optibank.givecr WHERE dogID = " + v + ";";
-                            fePS = conn.prepareStatement(feDBReq);
-                            rs = fePS.executeQuery();
-                            rs.next();
-                            float summa = rs.getFloat("summa");
-
-                            feDBReq = "SELECT percent FROM optibank.givecr where dogID = " + v + ";";
-                            fePS = conn.prepareStatement(feDBReq);
-                            rs = fePS.executeQuery();
-                            rs.next();
-                            float percent = rs.getFloat("percent")/100;
-
-                            float accumulation = (float) ChronoUnit.DAYS.between(dateOfStartDeposit, today)/365 * percent * summa;
-
-                            feDBReq = "UPDATE `optibank`.`givecr` SET `accumulation` = '"
-                                    + accumulation
-                                    + "' WHERE (`dogID` = '" + v + "')";
-
-                            fePS = conn.prepareStatement(feDBReq);
-                            fePS.executeUpdate();
-                        } catch (SQLException sql) {
-                            sql.printStackTrace();
-                        }
-                    });
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-    }
-
 
     public void updateDepositsAccumulation() {
         try {
